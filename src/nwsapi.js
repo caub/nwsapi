@@ -65,7 +65,7 @@
   pseudo_5 = 'selection|backdrop|placeholder',
   params_1 = '(?:\\(\\s?(even|odd|(?:[-+]?\\d*n?)(?:[-+]?\\d+)?)\\s?\\))',
   negation = '|(?:matches|not)\\(\\s?(:' + struct_2 + params_1 + '|[^()]*)\\s?\\)',
-
+                                
   Patterns = {
     struct_n: RegExp('^:(' + struct_1 + ')?(.*)', 'i'),
     struct_p: RegExp('^:(' + struct_2 + params_1 + ')?(.*)', 'i'),
