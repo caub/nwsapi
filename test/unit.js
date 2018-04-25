@@ -8,11 +8,17 @@ class Document {
     this.documentElement = new Element({
       nodeName: 'HTML',
       children,
-      ownerDocument: this 
+      ownerDocument: this
     });
     this.nodeType = 9;
+    this.contentType = 'text/html';
+    this.compatMode = 'BackCompat';
     this.firstChild = this.documentElement;
     this.firstElementChild = this.documentElement;
+    this._elementById = new Map();
+  }
+  createElement(tag) {
+    return new Element({ nodeName: String(tag).toUpperCase() });
   }
   getElementsByTagNameNS(ns, tag) {
     return this.firstElementChild.getElementsByTagNameNS(ns, tag);
@@ -23,10 +29,13 @@ class Document {
   getElementsByClassName(cn) {
     return this.firstElementChild.getElementsByClassName(cn);
   }
+  getElementById(s) {
+    return this._elementById.get(s);
+  }
 }
 
 class Element {
-  constructor({nodeName = 'DIV', attrs = [], ownerDocument, children = []}) {
+  constructor({ nodeName = 'DIV', attrs = [], ownerDocument, children = [] }) {
     this.nodeType = 1;
     this.ownerDocument = ownerDocument;
     this.nodeName = nodeName.toUpperCase();
@@ -38,17 +47,21 @@ class Element {
     this.nextSibling = null;
     this.previousSibling = null;
 
+    if (this._attrs.has('id')) {
+      this.ownerDocument._elementsById.set(this._attrs.get('id'), this);
+    }
+
     children.forEach((el, i) => {
       el.parentNode = this;
       el.ownerDocument = this.ownerDocument;
 
-      if (children[i-1]) {
-        children[i-1].nextSibling = el;
-        el.previousSibling = children[i-1];
+      if (children[i - 1]) {
+        children[i - 1].nextSibling = el;
+        el.previousSibling = children[i - 1];
       }
-      if (children[i+1]) {
-        children[i+1].previousSibling = el;
-        el.nextSibling = children[i+1];
+      if (children[i + 1]) {
+        children[i + 1].previousSibling = el;
+        el.nextSibling = children[i + 1];
       }
     })
     this.firstChild = children[0];
@@ -121,7 +134,7 @@ const createElement = (nodeName, attrs = []) => (...children) => new Element({
   children
 });
 
-const stringifyAttr = el => (el._attrs.size ? ' ' : '' ) + Array.from(el._attrs, ([k, v]) => `${k}="${v.replace(/["]/g, `'`)}"`).join(' ');
+const stringifyAttr = el => (el._attrs.size ? ' ' : '') + Array.from(el._attrs, ([k, v]) => `${k}="${v.replace(/["]/g, `'`)}"`).join(' ');
 
 const stringifyChildren = (el, indent = '') => {
   const lines = [];
@@ -147,7 +160,7 @@ const stringify = (el, indent = '') => {
   const EOL = indent ? '\n' : '';
 
   return [`<${el.localName}${stringifyAttr(el)}>`,
-    ...stringifyChildren(el, indent).map(l => indent + l),
+  ...stringifyChildren(el, indent).map(l => indent + l),
   `</${el.localName}>`].join(EOL);
 }
 
@@ -173,7 +186,7 @@ console.log(stringify(self.document.firstChild, '  ')); // pretty-print the tree
 console.log(nwsapi.select('div', self.document).length);
 console.log(nwsapi.select('DIV', self.document).length);
 console.log(nwsapi.select('.foo', self.document).length);
-console.log(nwsapi.select('[class=foo]', self.document).length);
+console.log(nwsapi.select('[class="foo"]', self.document).length);
 
 
 // logs:
